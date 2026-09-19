@@ -37,6 +37,40 @@ pub enum Error {
     #[error("a threshold of zero accepts an unsigned envelope")]
     ZeroThreshold,
 
+    /// Two supplied keys reported the same identifier, so a threshold cannot
+    /// count them apart. The count is over distinct keys, and a set that cannot
+    /// be counted is refused rather than counted wrongly.
+    #[error(
+        "two supplied keys report key_id {key_id:?}; a threshold cannot count them as distinct"
+    )]
+    DuplicateKeyId {
+        /// The identifier two keys share.
+        key_id: String,
+    },
+
+    /// A threshold above one was requested with a key that reports no
+    /// identifier. Anonymous keys cannot be told apart, so the same key supplied
+    /// twice would satisfy a 2-of-n on its own.
+    #[error("key #{index} reports no key_id, so a threshold above 1 cannot count distinct keys")]
+    UnidentifiedKey {
+        /// Which supplied key, by position.
+        index: usize,
+    },
+
+    /// `payloadType` was present but empty. An empty type binds nothing, and the
+    /// whole purpose of the pre-authentication encoding is to bind the type.
+    #[error("payloadType is empty; a DSSE envelope must name the type its payload is")]
+    EmptyPayloadType,
+
+    /// The envelope carries more signature entries than [`crate::MAX_SIGNATURES`].
+    #[error("envelope carries {got} signature entries, at most {cap} are verified")]
+    TooManySignatures {
+        /// How many entries it carried.
+        got: usize,
+        /// The cap.
+        cap: usize,
+    },
+
     /// The signer could not produce a signature.
     #[error("signing failed: {0}")]
     Signing(String),

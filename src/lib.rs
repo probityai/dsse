@@ -67,7 +67,7 @@ pub use error::{Error, Result};
 pub use pae::pae;
 pub use sign::{sign, sign_with};
 pub use traits::{Signer, Verifier};
-pub use verify::{verify, VerifiedPayload};
+pub use verify::{verify, VerifiedPayload, MAX_SIGNATURES};
 
 #[cfg(feature = "ed25519")]
 pub use ed25519::{Ed25519Signer, Ed25519Verifier};

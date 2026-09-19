@@ -36,13 +36,24 @@ pub struct VerifiedPayload {
 /// threshold. Each supplied key therefore contributes at most one, however many
 /// entries it verifies.
 ///
-/// The caller owns key distinctness. Passing the same key twice makes `n` wrong
-/// and inflates the count, which is why [`Verifier::key_id`] is documented as
-/// unique across a trusted set.
+/// Key distinctness is CHECKED, not assumed. It used to be the caller's alone:
+/// `verify(&env, &[&key, &key], 2)` returned `Ok` with `accepted_keys` reading
+/// `["k1", "k1"]`, so one key satisfied a 2-of-n while the result carried the
+/// proof it had not. Counting slots instead of keys is the same error as counting
+/// signature entries, one level up. So a threshold above 1 requires every
+/// supplied key to report an identifier ([`Error::UnidentifiedKey`]) and no two
+/// to report the same one ([`Error::DuplicateKeyId`]): a set that cannot be
+/// counted is refused rather than counted wrongly. A 1-of-n has nothing to count
+/// and is unaffected.
 ///
-/// A decode failure anywhere in the envelope is a refusal, not a skipped
-/// attempt: the protocol says to reject when decoding fails. A signature that
-/// decodes but does not verify is skipped, as the protocol also says.
+/// A payload that does not decode is a refusal: the protocol says to reject when
+/// decoding fails, and there is exactly one payload. A SIGNATURE ENTRY that does
+/// not decode is skipped, because `signatures` is not covered by any signature --
+/// anyone who can touch the envelope can append an entry, and making one
+/// unusable entry fatal hands them a denial of verification over an envelope that
+/// is validly signed. If no entry at all decodes, that is
+/// [`Error::NonCanonicalBase64`]. A signature that decodes but does not verify is
+/// skipped, as the protocol also says.
 pub fn verify(
     envelope: &Envelope,
     keys: &[&dyn Verifier],
@@ -51,17 +62,36 @@ pub fn verify(
     if threshold == 0 {
         return Err(Error::ZeroThreshold);
     }
+    if envelope.payload_type.is_empty() {
+        return Err(Error::EmptyPayloadType);
+    }
     if envelope.signatures.is_empty() {
         return Err(Error::NoSignatures);
     }
+    if envelope.signatures.len() > MAX_SIGNATURES {
+        return Err(Error::TooManySignatures {
+            got: envelope.signatures.len(),
+            cap: MAX_SIGNATURES,
+        });
+    }
+    check_countable(keys, threshold)?;
 
     let payload = decode_b64(&envelope.payload, "payload")?;
     let pre_image = pae(&envelope.payload_type, &payload);
 
     let mut entries = Vec::with_capacity(envelope.signatures.len());
     for entry in &envelope.signatures {
-        let sig = decode_b64(&entry.sig, "signatures[].sig")?;
-        entries.push((entry.keyid.as_deref().unwrap_or_default(), sig));
+        // An entry that does not decode is skipped, not fatal. See the note on
+        // this function: `signatures` is outside every signature, so a fatal
+        // entry is a denial of verification anyone can mint.
+        if let Ok(sig) = decode_b64(&entry.sig, "signatures[].sig") {
+            entries.push((entry.keyid.as_deref().unwrap_or_default(), sig));
+        }
+    }
+    if entries.is_empty() {
+        return Err(Error::NonCanonicalBase64 {
+            field: "signatures[].sig",
+        });
     }
 
     let mut accepted = Vec::new();
@@ -84,6 +114,39 @@ pub fn verify(
         payload,
         accepted_keys: accepted,
     })
+}
+
+/// The most signature entries [`verify`] will attempt.
+///
+/// Verification is `keys x entries` signature checks, and nothing in the
+/// envelope bounds `entries`. A cap is what turns "the caller passed us an
+/// envelope" into bounded work; a depth cap bounds a stack and a size cap bounds
+/// a heap, and this bounds arithmetic. 1024 is orders of magnitude above any real
+/// multi-signature envelope, so it refuses nothing genuine.
+pub const MAX_SIGNATURES: usize = 1024;
+
+/// Refuses a key set a threshold above 1 cannot count.
+///
+/// Two conditions, and both are about the same thing: `accepted.len()` is only a
+/// count of DISTINCT keys if the supplied keys are distinguishable. An anonymous
+/// key is not, and two keys reporting one identifier are not.
+fn check_countable(keys: &[&dyn Verifier], threshold: usize) -> Result<()> {
+    if threshold < 2 {
+        return Ok(());
+    }
+    let mut ids: Vec<String> = Vec::with_capacity(keys.len());
+    for (index, key) in keys.iter().enumerate() {
+        match key.key_id().filter(|id| !id.is_empty()) {
+            None => return Err(Error::UnidentifiedKey { index }),
+            Some(id) => {
+                if ids.contains(&id) {
+                    return Err(Error::DuplicateKeyId { key_id: id });
+                }
+                ids.push(id);
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Reports whether `key` verifies any of the envelope's signatures.
