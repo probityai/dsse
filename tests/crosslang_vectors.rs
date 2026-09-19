@@ -1,5 +1,5 @@
 //! PINNED VECTORS. All 11 cases are loaded from
-//! `vectors/matchlock_cross_lang_signing.json`, copied verbatim from
+//! `vectors/cross_lang_signing.json`, copied verbatim from
 //! `pkg/signing/crosslang/testdata/cross_lang_signing.json` in a private Go
 //! implementation at commit c55e3a3f3ab68573998d3e4724421163727fecf0
 //! (2026-07-31). Each case carries a payload type, the PAE bytes that
@@ -21,7 +21,7 @@
 
 use dsse::{pae, Ed25519Verifier, Envelope, Signature, Verifier};
 
-const VECTORS: &str = include_str!("../vectors/matchlock_cross_lang_signing.json");
+const VECTORS: &str = include_str!("../vectors/cross_lang_signing.json");
 
 fn b64(s: &str) -> Vec<u8> {
     use base64::Engine as _;

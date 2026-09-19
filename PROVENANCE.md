@@ -44,7 +44,7 @@ parameter to set to zero.
 ## Test vectors
 
 ```text
-file    vectors/matchlock_cross_lang_signing.json
+file    vectors/cross_lang_signing.json
 bytes   73309
 sha256  4ca7b6a63bcf512f6ba5314dc6a0fb6d20266c0a82f157972e240a99b4974531
 
