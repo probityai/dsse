@@ -10,7 +10,6 @@ documentation = "https://docs.rs/dsse"
 readme = "README.md"
 keywords = ["dsse", "in-toto", "sigstore", "signing", "attestation"]
 categories = ["cryptography", "encoding"]
-exclude = ["vectors/*"]
 
 [features]
 default = ["ed25519"]
