@@ -2,7 +2,8 @@
 
 use thiserror::Error;
 
-/// Every way this crate refuses an envelope, and nothing else.
+/// Every way an operation in this crate can fail: nine refusals of an envelope,
+/// a threshold or a key set, plus two failures passed through from a backend.
 #[derive(Debug, Error, PartialEq, Eq, Clone)]
 #[non_exhaustive]
 pub enum Error {

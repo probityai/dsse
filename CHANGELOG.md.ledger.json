@@ -1,0 +1,170 @@
+{
+ "version": 10,
+ "migrations": [],
+ "written_by": "humanizer-core 0.1.0 (944fbb1445fb)",
+ "register_mode": "auto",
+ "extras_channel": "jaccard+e5",
+ "declared_voice": [
+  "second-person"
+ ],
+ "declared_motifs": [],
+ "src_sha256": "149010704db61294729baacdc216bb6b3e6ae3e089aa51ee280e1091ca0037fe",
+ "sentence_digests": [
+  "d06af6b2e61b54e32d63ba9b29958e0ac9229e8f5669c60bf78681924a26cae9",
+  "863721306a8462ce1e2d0c79e7a2486787d64171e46ce1a4878a293daf6043fb",
+  "7e8451932255a926dc2ae057e5f04121bba0356d350811b8c698925bfeebd797",
+  "a5a0a96a207878f2b81af43d98a313bbb6a9fa5308135ee77547dc62cdb4e709",
+  "5bedfaf26f43a26fc78d4412d2898bc3ca782177febc5284490fd83066a24555",
+  "0dffb9d96f65137df8363779b46f10a8f847eecd0511e304f847ab530cd8b43a",
+  "d71bebb5f716cdc621ec22977303ed49a2a834bfa9c0b493f39afe4072f83c6b",
+  "202c69c59bbe15acaf7698e175018732d49674ddd68db222e74bc05ea83996cb",
+  "3b481783097a4fbe75fb102db3b84773cd0f9d4dabad920fac3231f6324a645f",
+  "a3856d914b2ad8c173b64ec68d74f53e9483e53c66321eb66dcb78be76a77368",
+  "376c442dc1cb308f7946bc29be3713f600dfecafe91725a6c1879175d37b9ce1",
+  "d2b9275727fa85b006314a85402420aaa2d8e451ba6d7f7a1405156dcec19930",
+  "4576a157099901bd4435f39ee21d0f8902965dc616e0c693939cd864fbcfcb9f",
+  "78450ee30058146fef8206bff76bbfda2baa8df1bd23baa38d252df019307124",
+  "af99357c07b56d7380bf9bcb54262636bdf9927ef0d756fefeecfbebac25c1c5",
+  "f06e8618842e1a9ac286895e44a817c31f5cde3c7be998cb3080459e05c2b380",
+  "3b8eb590c9a78cfc3e13fd88f29fbfc5ddde166224f3cdbb65bd10f40aed2716",
+  "6bdc08f887fb287ef78b2cdb0934cc47a9e22b12a5f3291b7c1373891931efc4",
+  "1754715e6a03699a735ce82bb0e50b49cfeb001a4a3fdbd6680cc1fc2709d526"
+ ],
+ "prior_digests": [
+  "054aa355ff309023072d6190f008bdf6952080dafc26b2497e7ba47724d7c114"
+ ],
+ "carry_forward": null,
+ "document": "CHANGELOG.md",
+ "ask": {
+  "text": "YOU GATE THE PROSE OF ONE CRATE: dsse at /home/sgilda/Documents/dsse-rs.\nThe first standalone envelope crate in Rust. Its CHANGELOG will be read by people who know the specification better than we do, so every claim about the encoding must match the specification text.\nFIND EVERY WORD THAT WOULD BE PUBLISHED. THE REGISTER FOR A CRATE CHANGELOG IS DEVELOPER DOCUMENTATION. Second person, active voice, present tense, sentence-case headings, conditions before instructions, and requirement words used precisely. No superlatives and no unverifiable performance claim; a number in a CHANGELOG carries where it was measured.\n",
+  "sha256": "5dd39c767b09d7c10909a710121b865a5105868e599db66464d22b7431dd8f0b",
+  "channel": "release-notes"
+ },
+ "length": {
+  "verdict": "FAIL",
+  "words": 381,
+  "sentences": 19,
+  "budget": {
+   "channel": "release-notes",
+   "words_max": 300,
+   "sentences_max": 15,
+   "basis": "hand-set: policy. A release body is a NOTICE, not a comment: it says what changed, what to verify and how, so it is longer than any thread channel and shorter than a filing. The v0.10.1 notes measure 292 prose words and would have been refused under the 90-word listing-pr band. The tables, the fenced verification blocks and the corpus table are already outside the count, because `send_prose` strips fences and table rows for every channel. No corpus of release bodies is on disk, so this is a policy number."
+  },
+  "ask_sha256": "5dd39c767b09d7c10909a710121b865a5105868e599db66464d22b7431dd8f0b",
+  "src_sha256": "149010704db61294729baacdc216bb6b3e6ae3e089aa51ee280e1091ca0037fe",
+  "measured_by": "humanizer-core 0.1.0 (944fbb1445fb)",
+  "measured_at": "2026-09-19T17:49:47+00:00"
+ },
+ "rows": [
+  {
+   "id": "lint-p56-731863a1f66c",
+   "source": "lint",
+   "vendor": null,
+   "jury_pass_id": null,
+   "pattern_id": "P56",
+   "description": "section-signpost-density: '#' — only 0 section cross-reference(s) = 0.00/1k words across a multi-section paper, BELOW the academic floor 0.1/1k. A long multi-section paper with essentially no ",
+   "severity": "low",
+   "priority": null,
+   "decision": "DISMISS",
+   "reason": "The finding calls this 'a multi-section paper'. It is a 398-word changelog with one released-version heading and two change-type subheadings that the Keep a Changelog 1.1.0 format supplies, so its structure is a template rather than an argument with internal pointers. The floor of 0.1 per 1,000 words licenses 0.04 cross-references at this length.",
+   "justification": null,
+   "decided_by": null,
+   "decided_at": "2026-09-19T17:14:57.636150+00:00",
+   "hook": {
+    "type": "lint_recheck",
+    "pattern_id": "P56",
+    "max_findings": 0,
+    "lint_register": "auto",
+    "baseline_findings": 1
+   },
+   "evidence": "chars 0-1: '#'",
+   "evidence_state": null,
+   "contested_rule_version": null,
+   "deletes": null,
+   "additive_reason": null,
+   "relocates": null,
+   "constrains": null,
+   "awaiting_external": null
+  },
+  {
+   "id": "lint-p54-83aa1cb2a370",
+   "source": "lint",
+   "vendor": null,
+   "jury_pass_id": null,
+   "pattern_id": "P54",
+   "description": "absolutes-self-contradiction: 'every' — ADVISORY (absolutes lexicon): absolute claim word — every hit must be ledger-adjudicated, never batch-dismissed. Verify no hedged variant of the same claim exis",
+   "severity": "low",
+   "priority": null,
+   "decision": "DISMISS",
+   "reason": "'A record of every notable change to this Rust crate' states the document's own scope, mirroring the Keep a Changelog 1.1.0 definition the next clause links to, which is what a changelog's opening line is for. The 2 occurrences of 'every' in 398 words are this one and 'every notable change'; 0 hedge tokens appear in the file, so no softened restatement contradicts it.",
+   "justification": null,
+   "decided_by": null,
+   "decided_at": "2026-09-19T17:15:00.941497+00:00",
+   "hook": {
+    "type": "lint_recheck",
+    "pattern_id": "P54",
+    "max_findings": 1,
+    "lint_register": "auto",
+    "baseline_findings": 2
+   },
+   "evidence": "chars 25-30: 'every'",
+   "evidence_state": null,
+   "contested_rule_version": null,
+   "deletes": null,
+   "additive_reason": null,
+   "relocates": null,
+   "constrains": null,
+   "awaiting_external": null
+  },
+  {
+   "id": "lint-p54-7134f6f9da51",
+   "source": "lint",
+   "vendor": null,
+   "jury_pass_id": null,
+   "pattern_id": "P54",
+   "description": "absolutes-self-contradiction: 'never' — ADVISORY (absolutes lexicon): absolute claim word — every hit must be ledger-adjudicated, never batch-dismissed. Verify no hedged variant of the same claim exis",
+   "severity": "low",
+   "priority": null,
+   "decision": "DISMISS",
+   "reason": "The one 'never' is 'The envelope is never read again', and the claim is unhedged in the code it describes: src/verify.rs moves the decoded payload into VerifiedPayload and the envelope is not touched afterwards. 'read again' occurs once in 398 words and 0 hedge tokens appear in the file.",
+   "justification": null,
+   "decided_by": null,
+   "decided_at": "2026-09-19T17:15:04.184921+00:00",
+   "hook": {
+    "type": "lint_recheck",
+    "pattern_id": "P54",
+    "max_findings": 1,
+    "lint_register": "auto",
+    "baseline_findings": 2
+   },
+   "evidence": "chars 1065-1070: 'never'",
+   "evidence_state": null,
+   "contested_rule_version": null,
+   "deletes": null,
+   "additive_reason": null,
+   "relocates": null,
+   "constrains": null,
+   "awaiting_external": null
+  }
+ ],
+ "jury": [],
+ "bound_at": "2026-09-19T17:28:48.627568+00:00",
+ "bound_at_basis": "",
+ "skill_loads": [
+  {
+   "skill": "humanizer",
+   "sha256": "9e675bbe4cc249521bc797e566d30cfb2061bb100d84106d7104dd7dc1c69f2a",
+   "at": "2026-09-19T17:29:39.114115+00:00"
+  },
+  {
+   "skill": "edelman",
+   "sha256": "00b46ba420fa6452b621513cae4f8da2d1ea2f6913d656b3a8760747e1986a1e",
+   "at": "2026-09-19T17:29:43.478444+00:00"
+  },
+  {
+   "skill": "google-developer-style",
+   "sha256": "abceaad7ee5c1a0ac2827e3eafaa8447ffeadb28a2b2f0bb80d95eb12ff4b1b3",
+   "at": "2026-09-19T17:29:49.036942+00:00"
+  }
+ ]
+}

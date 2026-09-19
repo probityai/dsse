@@ -7,9 +7,9 @@
 //!
 //! # What a signature covers
 //!
-//! A DSSE signature is not over the payload. It is over
-//! `PAE(payload_type, payload)`, the pre-authentication encoding, which binds
-//! the payload type inside the signed bytes:
+//! A DSSE signature covers `PAE(payload_type, payload)`, the pre-authentication
+//! encoding, rather than the payload on its own. The encoding binds the payload
+//! type inside the signed bytes:
 //!
 //! ```text
 //! PAE(type, body) = "DSSEv1" SP LEN(type) SP type SP LEN(body) SP body
@@ -17,17 +17,17 @@
 //!
 //! That binding is the point. When the type is checked beside the signature
 //! rather than inside it, a signature minted for one attestation type satisfies
-//! a check for another. That was CVE-2022-35929 in cosign, scored 7.1 by
-//! GitHub's advisory and 9.8 by NVD -- two scorers who disagree, not one agreed
-//! number. Here the type is part of the pre-image, so the confusion has no
-//! reachable path.
+//! a check for another. That was CVE-2022-35929 in cosign. GitHub's advisory
+//! scored it 7.1 and NVD scored it 9.8; the two scorers disagree, and there is no
+//! single agreed number. Here the type is part of the pre-image, so the confusion
+//! has no reachable path.
 //!
 //! # Verify, then read
 //!
 //! [`verify`] returns a [`VerifiedPayload`] holding the exact bytes the
 //! signature covered. There is no second decode: the payload is decoded once,
 //! that decode builds the pre-image, and those same bytes are what comes back.
-//! The protocol requires this -- an implementation that re-parses the envelope
+//! The protocol requires this: an implementation that re-parses the envelope
 //! after verifying to pull the payload out can be made to hand the application
 //! bytes nobody signed.
 //!

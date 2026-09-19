@@ -1,7 +1,7 @@
 //! An ed25519 backend, behind the `ed25519` feature.
 //!
-//! It exists so the crate is usable without writing a backend first. Anything
-//! else -- an ECDSA key, a KMS, a Sigstore signer -- implements
+//! It exists so the crate is usable without writing a backend first. Any other
+//! key, whether an ECDSA key, a key in a KMS or a Sigstore signer, implements
 //! [`crate::Signer`] and [`crate::Verifier`] instead and needs nothing here.
 
 use ed25519_dalek::{Signature, SigningKey, VerifyingKey, SIGNATURE_LENGTH};

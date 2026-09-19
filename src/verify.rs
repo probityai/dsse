@@ -12,9 +12,9 @@ use crate::traits::Verifier;
 /// signature covered: they are decoded once, that decode builds the
 /// pre-authentication encoding, and those same bytes are moved into this struct.
 /// The envelope is never read again afterwards, which is what the protocol's
-/// re-parsing warning requires -- an implementation that goes back to the
-/// envelope for the payload after verifying can be made to hand the application
-/// bytes nobody signed.
+/// re-parsing warning requires: an implementation that goes back to the envelope
+/// for the payload after verifying can be made to hand the application bytes
+/// nobody signed.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VerifiedPayload {
     /// The authenticated payload type.
@@ -36,22 +36,20 @@ pub struct VerifiedPayload {
 /// threshold. Each supplied key therefore contributes at most one, however many
 /// entries it verifies.
 ///
-/// Key distinctness is CHECKED, not assumed. It used to be the caller's alone:
-/// `verify(&env, &[&key, &key], 2)` returned `Ok` with `accepted_keys` reading
-/// `["k1", "k1"]`, so one key satisfied a 2-of-n while the result carried the
-/// proof it had not. Counting slots instead of keys is the same error as counting
-/// signature entries, one level up. So a threshold above 1 requires every
-/// supplied key to report an identifier ([`Error::UnidentifiedKey`]) and no two
-/// to report the same one ([`Error::DuplicateKeyId`]): a set that cannot be
-/// counted is refused rather than counted wrongly. A 1-of-n has nothing to count
-/// and is unaffected.
+/// Distinctness is checked here, not left to the caller. Counting the slots a
+/// caller passed is the same error as counting signature entries, one level up:
+/// the same key supplied twice fills two slots and is still one key. So a
+/// threshold above 1 requires every supplied key to report an identifier
+/// ([`Error::UnidentifiedKey`]) and no two to report the same one
+/// ([`Error::DuplicateKeyId`]). A key set that cannot be counted is refused
+/// instead of counted wrongly. A 1-of-n has nothing to count and is unaffected.
 ///
 /// A payload that does not decode is a refusal: the protocol says to reject when
-/// decoding fails, and there is exactly one payload. A SIGNATURE ENTRY that does
-/// not decode is skipped, because `signatures` is not covered by any signature --
-/// anyone who can touch the envelope can append an entry, and making one
-/// unusable entry fatal hands them a denial of verification over an envelope that
-/// is validly signed. If no entry at all decodes, that is
+/// decoding fails, and there is exactly one payload. A signature entry that does
+/// not decode is skipped, because `signatures` is covered by no signature.
+/// Anyone who can touch the envelope can append an entry, and making one unusable
+/// entry fatal hands them a denial of verification over an envelope that is
+/// validly signed. If no entry at all decodes, that is
 /// [`Error::NonCanonicalBase64`]. A signature that decodes but does not verify is
 /// skipped, as the protocol also says.
 pub fn verify(
@@ -127,9 +125,9 @@ pub const MAX_SIGNATURES: usize = 1024;
 
 /// Refuses a key set a threshold above 1 cannot count.
 ///
-/// Two conditions, and both are about the same thing: `accepted.len()` is only a
-/// count of DISTINCT keys if the supplied keys are distinguishable. An anonymous
-/// key is not, and two keys reporting one identifier are not.
+/// Two conditions, and both are about the same thing: `accepted.len()` counts
+/// distinct keys only if the supplied keys are distinguishable. An anonymous key
+/// is not, and two keys reporting one identifier are not.
 fn check_countable(keys: &[&dyn Verifier], threshold: usize) -> Result<()> {
     if threshold < 2 {
         return Ok(());

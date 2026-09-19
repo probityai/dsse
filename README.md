@@ -1,28 +1,31 @@
 # dsse
 
-DSSE — the Dead Simple Signing Envelope — and the pre-authentication encoding its
-signatures are computed over. In Rust, on its own, with no in-toto or Sigstore
-dependency.
+DSSE, the Dead Simple Signing Envelope, and the pre-authentication encoding its
+signatures are computed over, as a Rust crate on its own: no in-toto dependency
+and no Sigstore dependency. It depends on base64, serde and thiserror, plus an
+ed25519 backend behind a feature you can turn off.
 
-DSSE is the envelope the in-toto and Sigstore families sign inside. Until now
-every Rust implementation of it shipped inside a product crate and carried that
-product's name, so a consumer who needed the envelope took the product too. This
-crate is the envelope and nothing else.
+DSSE is the envelope the in-toto and Sigstore families sign inside. This crate
+implements the envelope and nothing else, so a consumer who needs the envelope
+does not take a product along with it.
 
 ## What a signature covers
 
-A DSSE signature is not over the payload. It is over `PAE(payload_type, payload)`:
+A DSSE envelope carries a payload, a payload type that says how to read the
+payload, and one or more signatures. A signature covers the pre-authentication
+encoding of the payload type and the payload together, rather than the payload on
+its own:
 
 ```text
 PAE(type, body) = "DSSEv1" SP LEN(type) SP type SP LEN(body) SP body
 LEN(s)          = ASCII decimal byte length of s, no leading zeros
 ```
 
-The payload type is inside the signed bytes. That is the whole point of the
-encoding: when a verifier checks the type beside the signature rather than inside
-it, a signature minted for one attestation type satisfies a check for another.
-That was CVE-2022-35929 in cosign, scored 7.1 by GitHub's advisory and 9.8 by
-NVD — two scorers who disagree, not one agreed number.
+The payload type sits inside the signed bytes, and that is what the encoding is
+for. A verifier that checks the type beside the signature instead of inside it
+will accept a signature minted for one attestation type as a signature for
+another. That was CVE-2022-35929 in cosign. GitHub's advisory scored it 7.1 and
+NVD scored it 9.8; the two scorers disagree, and there is no single agreed number.
 
 ## Verify, then read
 
@@ -36,17 +39,17 @@ let verified = verify(&envelope, &[&signer.verifier()], 1)?;
 // verified.payload is the exact bytes the signature covered.
 ```
 
-`verify` returns the payload bytes. The envelope is decoded once, that decode
+Verification returns the payload bytes. The envelope is decoded once, that decode
 builds the pre-image, and those same bytes come back. There is no second read,
-because an implementation that goes back to the envelope after verifying can be
-made to hand the application bytes nobody signed — which the protocol says in
-capitals and this API makes unreachable.
+because an implementation that returns to the envelope after verifying can be made
+to hand the application bytes nobody signed. DSSE's protocol document requires
+this in capitals, and this API gives you no way to do it.
 
 ## Bring your own signatures
 
-`ed25519` is a default feature, there so the crate works out of the box. Anything
-else — ECDSA, a KMS, a Sigstore signer — implements two traits and needs nothing
-from it:
+The `ed25519` feature is on by default so that the crate works with no backend of
+your own. To use anything else, an ECDSA key, a KMS, or a Sigstore signer, turn
+the feature off and implement two traits:
 
 ```toml
 dsse = { version = "0.1", default-features = false }
@@ -61,34 +64,47 @@ impl dsse::Verifier for MyKey {
 
 ## What it refuses
 
-Six refusals, each one a test that fails against an implementation without it.
-Four of the six are places the specification's own reference implementation is
-permissive.
+The crate refuses six things that a permissive implementation accepts, and a test
+fails against any implementation that allows one of them. DSSE's own reference
+implementation allows four of the six.
 
 | Refusal | Why |
 |---|---|
-| A length prefix counting characters | `LEN` is the byte length. For a non-ASCII payload type the two differ, and the signatures do not interoperate. |
+| A length prefix counting characters | `LEN` is a byte length. For a payload type outside ASCII the two counts differ, and the signatures do not interoperate. |
 | Base64 with non-zero trailing bits, or unpadded | `eA==` and `eB==` both decode to `x` under a lenient decoder. One signature over two envelope spellings is malleability. |
 | An envelope with no signatures | The schema requires at least one. An empty list can meet no threshold. |
-| A threshold of zero | It would accept an envelope no trusted key signed. |
-| A threshold met by counting signature entries | The protocol counts **unique keys**. One valid signature copied five times is one key, so each key contributes at most once. |
-| A `keyid` treated as a filter | `keyid` is outside the signed bytes and so attacker-controlled. Here it orders attempts and never excludes a key, so a wrong hint cannot withhold a valid verification. |
+| A threshold of zero | It would accept an envelope that no trusted key signed. |
+| A threshold met by counting signature entries | DSSE counts distinct keys. One valid signature copied five times is still one key, so each key contributes at most once. |
+| A `keyid` treated as a filter | `keyid` sits outside the signed bytes, so an attacker can set it. Here it orders verification attempts and never excludes a key, and a wrong hint cannot withhold a valid verification. |
 
 ## Tests
 
-46 tests. Two suites load pinned vectors and four construct attacks:
+`cargo test` runs 53 tests: 52 across seven files in `tests/`, and one doctest.
+Two of those seven files load pinned vectors and five construct attacks.
 
-- **pinned** — the vector printed in the DSSE specification's own `protocol.md`,
-  and 11 cross-language fixtures carrying real ed25519 signatures over PAE
-  pre-images produced by an independent Go implementation. One fixture's payload
-  is raw binary rather than JSON.
-- **invented** — the length prefix under multi-byte and astral payload types,
-  empty payloads and empty types, a payload that is itself a valid PAE, base64
-  malleability in both members, the duplicate-signature threshold bypass, and
-  the `keyid` denial.
+The pinned files carry the test vector printed in DSSE's own protocol document,
+and 11 cross-language fixtures whose ed25519 signatures were produced by an
+independent Go implementation over its own PAE pre-images. One fixture carries a raw binary
+payload instead of JSON. Another pair of fixtures shares one key across two payload
+types, so the cross-type check runs against real material.
 
-Every pinned vector passes against an implementation carrying all six defects.
-That is what the invented suites are for.
+The five attack files cover the length prefix under multi-byte and astral payload
+types, empty payloads and empty types, a payload that is itself a valid
+pre-authentication encoding, base64 malleability in both members, the
+duplicate-signature threshold bypass, and the denial of verification through a
+wrong key hint.
+
+Every payload type in the pinned material is ASCII, DSSE's own vector
+included, so its byte length and its character length agree, and an implementation
+that counts characters passes all of it. The attack files cover the multi-byte and
+astral payload types, so that case is caught there.
+
+## Provenance
+
+The normative rules come from DSSE's own specification text at
+secure-systems-lab/dsse commit 851704a2, version 1.0.2 dated 2024-05-10, and not
+from a description of it. PROVENANCE.md ships with the crate and records each source
+and the commit it was read at.
 
 ## License
 
