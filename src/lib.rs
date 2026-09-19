@@ -15,7 +15,7 @@
 //! PAE(type, body) = "DSSEv1" SP LEN(type) SP type SP LEN(body) SP body
 //! ```
 //!
-//! That binding is the point. When the type is checked beside the signature
+//! That binding is what the check depends on. When the type is checked beside the signature
 //! rather than inside it, a signature minted for one attestation type satisfies
 //! a check for another. That was CVE-2022-35929 in cosign. GitHub's advisory
 //! scored it 7.1 and NVD scored it 9.8; the two scorers disagree, and there is no

@@ -124,7 +124,7 @@ throwaway key, and it keeps every property the suite relies on: real signatures 
 real PAE pre-images from an independent implementation, and one payload that is not
 UTF-8.
 
-## Licences, as a line item
+## Licences
 
 secure-systems-lab/dsse is Apache-2.0, Google LLC and the DSSE maintainers, an
 organisation rather than an individual. Contact is MAINTAINERS.md in that repository.
