@@ -1,2 +1,6 @@
 /target
 Cargo.lock
+*.ledger.json
+*.packet.md
+.jury/
+.build/
