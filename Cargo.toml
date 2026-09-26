@@ -8,7 +8,7 @@ description = "DSSE (Dead Simple Signing Envelope) with PAE pre-authentication e
 repository = "https://github.com/probityai/dsse"
 documentation = "https://docs.rs/dsse"
 readme = "README.md"
-exclude = ["*.ledger.json", ".humanizer/"]
+exclude = ["*.ledger.json", ".humanizer/", "/.github"]
 keywords = ["dsse", "in-toto", "sigstore", "signing", "attestation"]
 categories = ["cryptography", "encoding"]
 
