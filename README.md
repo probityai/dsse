@@ -15,7 +15,7 @@ the envelope without taking a whole attestation stack along with it.
 Add it as a pinned dependency:
 
 ```bash
-cargo add dsse@0.1.0
+cargo add dsse@0.1.1
 ```
 
 Then sign an envelope and verify it:
@@ -55,9 +55,9 @@ ed25519 feature and implement the `Signer` and `Verifier` traits.
 
 ## Status
 
-Version 0.1.0 on [crates.io](https://crates.io/crates/dsse). The rules come from DSSE's
-specification text at version 1.0.2, and the tests load cross-language fixtures signed by a
-separate Go implementation, recorded in PROVENANCE.md.
+Version 0.1.1 on [crates.io](https://crates.io/crates/dsse). The rules come from DSSE's
+specification text at version 1.0.2, and the tests load cross-language fixtures built by the
+DSSE reference Go implementation, recorded in PROVENANCE.md.
 
 ## Documentation
 
