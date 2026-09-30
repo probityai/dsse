@@ -51,6 +51,12 @@ impl DsseVerifier for Ed25519Verifier {
     fn key_id(&self) -> Option<String> {
         self.key_id.clone()
     }
+
+    fn key_identity(&self) -> Option<Vec<u8>> {
+        let mut identity = b"ed25519:".to_vec();
+        identity.extend_from_slice(self.key.as_bytes());
+        Some(identity)
+    }
 }
 
 /// An ed25519 signing key, with an optional identifier.

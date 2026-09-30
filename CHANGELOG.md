@@ -6,8 +6,13 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## 0.1.1 - 2026-09-30
 
-No change to the library. The published package's test fixtures change, and 0.1.0 is
-yanked.
+A threshold fix, and new test fixtures in the published package. 0.1.0 is yanked.
+
+### Fixed
+
+Thresholds above one now require stable key identities from verifiers. Two
+labels for the same Ed25519 public key no longer count as two keys. Custom
+verifiers must implement `key_identity` for these thresholds.
 
 ### Changed
 

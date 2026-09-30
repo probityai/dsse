@@ -61,8 +61,14 @@ dsse = { version = "0.1", default-features = false }
 impl dsse::Verifier for MyKey {
     fn verify(&self, message: &[u8], signature: &[u8]) -> bool { /* ... */ }
     fn key_id(&self) -> Option<String> { Some(self.id.clone()) }
+    fn key_identity(&self) -> Option<Vec<u8>> { Some(self.public_key_fingerprint.clone()) }
 }
 ```
+
+For a threshold above one, `key_identity` must identify the verification key,
+not a caller-assigned label. Include the algorithm in that value. An opaque key
+service can use an immutable key fingerprint. If it cannot identify a key, use
+threshold one. The built-in Ed25519 verifier uses its public key bytes.
 
 ## What it refuses
 

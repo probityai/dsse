@@ -81,6 +81,76 @@ fn two_distinct_keys_meet_a_threshold_of_two() {
     assert_eq!(verified.payload, b"payload");
 }
 
+#[test]
+fn two_labels_for_one_key_do_not_meet_a_threshold_of_two() {
+    let a = signer(1, "key-a");
+    let alias = signer(1, "key-b");
+    let env = sign_with("t", b"payload", &[&a]).unwrap();
+
+    let va = a.verifier();
+    let vb = alias.verifier();
+    assert_eq!(
+        dsse::verify(&env, &[&va, &vb], 2).unwrap_err(),
+        Error::DuplicateKeyIdentity {
+            first: 0,
+            second: 1
+        }
+    );
+}
+
+#[test]
+fn a_custom_verifier_needs_a_key_identity_for_threshold_two() {
+    struct LabelOnly(dsse::Ed25519Verifier);
+    impl Verifier for LabelOnly {
+        fn verify(&self, message: &[u8], signature: &[u8]) -> bool {
+            self.0.verify(message, signature)
+        }
+
+        fn key_id(&self) -> Option<String> {
+            self.0.key_id()
+        }
+    }
+
+    let a = signer(1, "key-a");
+    let b = signer(2, "key-b");
+    let env = sign_with("t", b"payload", &[&a, &b]).unwrap();
+    let va = LabelOnly(a.verifier());
+    let vb = LabelOnly(b.verifier());
+
+    assert_eq!(
+        dsse::verify(&env, &[&va, &vb], 2).unwrap_err(),
+        Error::UnidentifiedKeyIdentity { index: 0 }
+    );
+    assert!(dsse::verify(&env, &[&va], 1).is_ok());
+}
+
+#[test]
+fn custom_verifiers_with_key_identities_meet_threshold_two() {
+    struct Named(dsse::Ed25519Verifier);
+    impl Verifier for Named {
+        fn verify(&self, message: &[u8], signature: &[u8]) -> bool {
+            self.0.verify(message, signature)
+        }
+
+        fn key_id(&self) -> Option<String> {
+            self.0.key_id()
+        }
+
+        fn key_identity(&self) -> Option<Vec<u8>> {
+            self.0.key_identity()
+        }
+    }
+
+    let a = signer(1, "key-a");
+    let b = signer(2, "key-b");
+    let env = sign_with("t", b"payload", &[&a, &b]).unwrap();
+    let va = Named(a.verifier());
+    let vb = Named(b.verifier());
+
+    let verified = dsse::verify(&env, &[&va, &vb], 2).unwrap();
+    assert_eq!(verified.accepted_keys, vec!["key-a", "key-b"]);
+}
+
 /// A threshold above the number of trusted keys can never be met, and must be
 /// reported as a threshold failure rather than silently succeeding.
 #[test]

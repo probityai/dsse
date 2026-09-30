@@ -36,13 +36,10 @@ pub struct VerifiedPayload {
 /// threshold. Each supplied key therefore contributes at most one, however many
 /// entries it verifies.
 ///
-/// Distinctness is checked here, not left to the caller. Counting the slots a
-/// caller passed is the same error as counting signature entries, one level up:
-/// the same key supplied twice fills two slots and is still one key. So a
-/// threshold above 1 requires every supplied key to report an identifier
-/// ([`Error::UnidentifiedKey`]) and no two to report the same one
-/// ([`Error::DuplicateKeyId`]). A key set that cannot be counted is refused
-/// instead of counted wrongly. A 1-of-n has nothing to count and is unaffected.
+/// Distinctness is checked here, not left to the caller. A threshold above 1
+/// requires both a key identifier and a stable, algorithm-qualified key
+/// identity from every verifier. Labels alone cannot distinguish two aliases
+/// of one public key. A 1-of-n needs no key identity.
 ///
 /// A payload that does not decode is a refusal: the protocol says to reject when
 /// decoding fails, and there is exactly one payload. A signature entry that does
@@ -123,16 +120,14 @@ pub fn verify(
 /// multi-signature envelope, so it refuses nothing genuine.
 pub const MAX_SIGNATURES: usize = 1024;
 
-/// Refuses a key set a threshold above 1 cannot count.
-///
-/// Two conditions, and both are about the same thing: `accepted.len()` counts
-/// distinct keys only if the supplied keys are distinguishable. An anonymous key
-/// is not, and two keys reporting one identifier are not.
+/// Refuses labels that collide, keys with no stable identity, and aliases of
+/// one key that carry different labels.
 fn check_countable(keys: &[&dyn Verifier], threshold: usize) -> Result<()> {
     if threshold < 2 {
         return Ok(());
     }
     let mut ids: Vec<String> = Vec::with_capacity(keys.len());
+    let mut identities: Vec<Vec<u8>> = Vec::with_capacity(keys.len());
     for (index, key) in keys.iter().enumerate() {
         match key.key_id().filter(|id| !id.is_empty()) {
             None => return Err(Error::UnidentifiedKey { index }),
@@ -143,6 +138,17 @@ fn check_countable(keys: &[&dyn Verifier], threshold: usize) -> Result<()> {
                 ids.push(id);
             }
         }
+        let identity = key
+            .key_identity()
+            .filter(|identity| !identity.is_empty())
+            .ok_or(Error::UnidentifiedKeyIdentity { index })?;
+        if let Some(first) = identities.iter().position(|seen| seen == &identity) {
+            return Err(Error::DuplicateKeyIdentity {
+                first,
+                second: index,
+            });
+        }
+        identities.push(identity);
     }
     Ok(())
 }

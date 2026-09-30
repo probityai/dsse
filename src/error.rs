@@ -2,8 +2,7 @@
 
 use thiserror::Error;
 
-/// Every way an operation in this crate can fail: nine refusals of an envelope,
-/// a threshold or a key set, plus two failures passed through from a backend.
+/// Errors from envelope, threshold and key validation, or a signing backend.
 #[derive(Debug, Error, PartialEq, Eq, Clone)]
 #[non_exhaustive]
 pub enum Error {
@@ -49,11 +48,29 @@ pub enum Error {
         key_id: String,
     },
 
+    /// Two verifier entries refer to the same verification key under different
+    /// identifiers. Counting both would let one signature satisfy a threshold.
+    #[error("keys #{first} and #{second} have the same key identity")]
+    DuplicateKeyIdentity {
+        /// First occurrence in the supplied key set.
+        first: usize,
+        /// Repeated occurrence in the supplied key set.
+        second: usize,
+    },
+
     /// A threshold above one was requested with a key that reports no
     /// identifier. Anonymous keys cannot be told apart, so the same key supplied
     /// twice would satisfy a 2-of-n on its own.
     #[error("key #{index} reports no key_id, so a threshold above 1 cannot count distinct keys")]
     UnidentifiedKey {
+        /// Which supplied key, by position.
+        index: usize,
+    },
+
+    /// A key set cannot prove distinct keys when one verifier reports only a
+    /// caller-chosen label instead of a stable key identity.
+    #[error("key #{index} reports no key identity for a threshold above 1")]
+    UnidentifiedKeyIdentity {
         /// Which supplied key, by position.
         index: usize,
     },
