@@ -1,5 +1,9 @@
 name: rust
 
+# Runs the tests, including the signature-threshold tests, on a pinned stable
+# toolchain, and builds the crate without its Ed25519 feature. Format, lint,
+# docs and the name scan run in test.yml.
+
 on:
   push:
     branches: [main]
@@ -10,23 +14,15 @@ permissions:
 
 jobs:
   rust:
-    runs-on: ubicloud-standard-2
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Install Rust
-        run: rustup toolchain install 1.98.1 --profile minimal --component clippy,rustfmt
-      - name: Format
-        run: cargo +1.98.1 fmt --all -- --check
+        run: rustup toolchain install 1.98.1 --profile minimal
       - name: Test
         run: cargo +1.98.1 test --all-features
       - name: Check without Ed25519
         run: cargo +1.98.1 check --no-default-features
-      - name: Lint
-        run: cargo +1.98.1 clippy --all-targets --all-features -- -D warnings
-      - name: Docs
-        env:
-          RUSTDOCFLAGS: -D warnings
-        run: cargo +1.98.1 doc --all-features --no-deps

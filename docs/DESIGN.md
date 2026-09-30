@@ -87,7 +87,7 @@ implementation allows four of the six.
 
 ## Tests
 
-`cargo test` runs 60 tests: 59 across eight files in `tests/`, and one doctest.
+`cargo test` runs 63 tests: 62 across eight files in `tests/`, and one doctest.
 Two of those files load pinned vectors, five construct attacks, and one scans
 every shipped file for names that must not be there.
 
