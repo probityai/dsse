@@ -31,4 +31,13 @@ pub trait Verifier {
     fn key_id(&self) -> Option<String> {
         None
     }
+
+    /// Identifies the verification key independently of its display name.
+    ///
+    /// Return an algorithm-qualified public key or fingerprint. A threshold
+    /// above one requires this value so two names for one key count only once.
+    /// A backend that cannot provide it may still verify at threshold one.
+    fn key_identity(&self) -> Option<Vec<u8>> {
+        None
+    }
 }

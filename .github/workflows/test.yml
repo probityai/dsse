@@ -1,0 +1,75 @@
+name: test
+
+# Builds, lints and tests the crate, then scans the exact bytes `cargo package`
+# would publish, and checks the cross-language fixture file still equals what
+# its generator writes.
+#
+# The name scan reads its refused list, as SHA-256 digests, from the
+# DSSE_FORBIDDEN_SHA256 repository secret. A pull request from a fork gets no
+# secrets, so the list is required only on pushes and on pull requests from
+# this repository; there, a missing list fails the run instead of passing it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CARGO_TERM_COLOR: never
+      DSSE_FORBIDDEN_SHA256: ${{ secrets.DSSE_FORBIDDEN_SHA256 }}
+      DSSE_REQUIRE_FORBIDDEN_LIST: ${{ (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install the stable toolchain
+        run: |
+          rustup toolchain install stable --profile minimal --component clippy,rustfmt
+          rustup default stable
+
+      - name: Format
+        run: cargo fmt --check
+
+      - name: Clippy, warnings as errors
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Docs, warnings as errors
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --no-deps --all-features
+
+      - name: Test
+        run: cargo test --all-features
+
+      - name: Scan the packaged crate, decoded
+        run: |
+          cargo package
+          rm -rf "$RUNNER_TEMP/pkg" && mkdir -p "$RUNNER_TEMP/pkg"
+          tar xzf target/package/dsse-*.crate -C "$RUNNER_TEMP/pkg"
+          root=$(find "$RUNNER_TEMP/pkg" -mindepth 1 -maxdepth 1 -type d)
+          test -f "$root/vectors/cross_lang_signing.json"
+          DSSE_SCAN_ROOT="$root" cargo test --all-features --test no_private_names no_shipped_file
+
+  vectors:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GOTOOLCHAIN: go1.25.5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: The fixture file equals its generator's output
+        working-directory: vectors/generate
+        run: |
+          go run . > "$RUNNER_TEMP/regenerated.json"
+          diff -u ../cross_lang_signing.json "$RUNNER_TEMP/regenerated.json"

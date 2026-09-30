@@ -61,8 +61,14 @@ dsse = { version = "0.1", default-features = false }
 impl dsse::Verifier for MyKey {
     fn verify(&self, message: &[u8], signature: &[u8]) -> bool { /* ... */ }
     fn key_id(&self) -> Option<String> { Some(self.id.clone()) }
+    fn key_identity(&self) -> Option<Vec<u8>> { Some(self.public_key_fingerprint.clone()) }
 }
 ```
+
+For a threshold above one, `key_identity` must identify the verification key,
+not a caller-assigned label. Include the algorithm in that value. An opaque key
+service can use an immutable key fingerprint. If it cannot identify a key, use
+threshold one. The built-in Ed25519 verifier uses its public key bytes.
 
 ## What it refuses
 
@@ -81,14 +87,23 @@ implementation allows four of the six.
 
 ## Tests
 
-`cargo test` runs 53 tests: 52 across seven files in `tests/`, and one doctest.
-Two of those seven files load pinned vectors and five construct attacks.
+`cargo test` runs 63 tests: 62 across eight files in `tests/`, and one doctest.
+Two of those files load pinned vectors, five construct attacks, and one scans
+every shipped file for names that must not be there.
 
 The pinned files carry the test vector printed in DSSE's own protocol document,
-and 11 cross-language fixtures whose ed25519 signatures were produced by an
-independent Go implementation over its own PAE pre-images. One fixture carries a raw binary
-payload instead of JSON. Another pair of fixtures shares one key across two payload
-types, so the cross-type check runs against real material.
+and 11 cross-language fixtures built by the DSSE reference Go implementation,
+github.com/secure-systems-lab/go-securesystemslib, over its own PAE pre-images and
+signed with a published test key. Our PAE must reproduce each pre-image byte for
+byte, each reference envelope must parse and verify through the public API, and our
+signer must reproduce each reference signature. One fixture carries a raw binary
+payload that is not valid UTF-8, one an empty body, and one a body long enough for
+a four-digit length prefix. Several fixtures share one key across payload types, so
+the cross-type check runs against real material.
+
+One pinned payload type is not ASCII, so its byte length exceeds its character
+length and an implementation that counts characters fails it. The attack files
+cover multi-byte and astral payload types as well.
 
 The five attack files cover the length prefix under multi-byte and astral payload
 types, empty payloads and empty types, a payload that is itself a valid
@@ -96,10 +111,9 @@ pre-authentication encoding, base64 malleability in both members, the
 duplicate-signature threshold bypass, and the denial of verification through a
 wrong key hint.
 
-Every payload type in the pinned material is ASCII, DSSE's own vector
-included, so its byte length and its character length agree, and an implementation
-that counts characters passes all of it. The attack files cover the multi-byte and
-astral payload types, so that case is caught there.
+The name scan decodes JSON strings, base64 in both alphabets, hex and
+percent-encoding in every shipped file and compares each token by digest against a
+list CI supplies. It runs over the source tree and over the unpacked `.crate`.
 
 ## Provenance
 
