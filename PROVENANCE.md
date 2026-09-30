@@ -44,93 +44,67 @@ parameter to set to zero.
 ## Test vectors
 
 ```text
-file    vectors/cross_lang_signing.json
-bytes   73309
-sha256  4ca7b6a63bcf512f6ba5314dc6a0fb6d20266c0a82f157972e240a99b4974531
-
-copied verbatim from
-        pkg/signing/crosslang/testdata/cross_lang_signing.json
-        in a private Go codebase of ours
-written at
-        c55e3a3f3ab68573998d3e4724421163727fecf0 (2026-07-31)
-that repository's HEAD when the file was copied
-        4b716740e19096dc5824fcf066ab10601fe10642
+file         vectors/cross_lang_signing.json
+bytes        19671
+sha256       f5f6c8e991ecb452d73b6289eef8632666dbb50c7f1ef25827b28e869e16152c
+written by   vectors/generate (go run . > ../cross_lang_signing.json)
+using        github.com/secure-systems-lab/go-securesystemslib/dsse v0.11.1,
+             the DSSE reference Go implementation, Apache-2.0
+Go           go1.25.5, pinned in CI
 ```
 
-Eleven fixtures, each with a payload type, the canonical signed body, the PAE
-pre-image, and an ed25519 signature over it under one key. The `payload` member is
-the pre-canonicalisation object and is not what any signature covers;
-`canonical_b64` is.
+Eleven fixtures across five payload types. Each carries the signed body, the PAE
+pre-image the reference implementation built, an ed25519 signature over it, and
+the whole envelope that implementation emitted. The key is a published test key:
+its seed is SHA-256 of the label in the file's `key_label` member, and the file
+records the seed so the suite can check that this crate's signer reproduces the
+reference signatures. ed25519 is deterministic, so a rerun of the generator
+writes the same bytes, and CI fails if it does not.
+
+The payloads are neutral by construction: in-toto Statements naming `example.com`
+subjects, flat event records using the RFC 5737 documentation address
+`203.0.113.9`, a text body, an empty body, a body over 1000 bytes, a 40-byte binary
+root that is not valid UTF-8, and a payload type whose UTF-8 encoding is longer
+than its character count.
+
+Version 0.1.0 of this crate shipped an earlier fixture file, copied from a private
+test suite of ours. Its signed bodies carried internal source paths and
+identifiers from that suite, inside base64 where a text search does not reach.
+Version 0.1.1 replaces it, and 0.1.0 is yanked.
 
 ## Ported logic
 
-The PAE implementation follows one file of the same codebase: the same decimal
-length, the same injectivity argument, and the same CVE-2022-35929 reasoning for
-putting the payload type inside the signed bytes. A second implementation of the
-same rule was read as a cross-check.
+The PAE implementation follows an earlier Go implementation by the same author:
+the same decimal length, the same injectivity argument, and the same
+CVE-2022-35929 reasoning for putting the payload type inside the signed bytes. A
+second implementation of the same rule was read as a cross-check:
+`aee/pae.go` in github.com/probityai/agent-evidence-vectors.
 
-```text
-pkg/signing/pae.go   at 99c1aa1502889dc9eaaa52c322202942022d1f71 (2026-08-11)
-aee/pae.go           in github.com/probityai/agent-evidence-vectors, the cross-check
-```
-
-Four test ideas are ported from pkg/signing/pae_test.go: the specification vector,
-the empty body, injectivity across the type and body boundary, and domain separation
+Four test ideas are ported from that earlier suite: the specification vector, the
+empty body, injectivity across the type and body boundary, and domain separation
 between payload types. The multi-byte length-prefix cases, the base64 malleability
 cases, the duplicate-signature threshold case and the key-hint denial cases are new
-here; the Go suite has none of them.
+here.
 
-## What the shipped vector file contains
+## What the shipped files may not contain
 
-The vector file is inside the packaged crate, so whatever it carries is published
-with the crate. A publisher decides between two things before pushing a release:
-regenerate the fixtures under neutral payload types, or publish the strings listed
-here. Nothing yanks back once it is on a registry.
-
-Counts are over the 73,309 bytes as they ship. A string can appear in the JSON text,
-or only inside a base64 member, which must be decoded first: grepping the packaged
-bytes finds the first kind and misses the second. The two columns are counted
-separately for that reason, with DSSEv1 and aeeRunBinding as positive controls
-proving each search path runs.
-
-```text
-string                                          in the JSON text   inside decoded bodies
-application/vnd.probity.* payload types                       19                      11
-aeeRunBinding and the AEE record field names                   0                      12
-pkg/policy/idna.go                                             1                       4
-pkg/policy/scrub.go                                            0                       3
-NormalizeHost                                                  0                       4
-```
-
-Of those, aeeRunBinding and the AEE field names are public already, in 20 files of
-github.com/probityai/agent-evidence-vectors. The five vendor media types and the
-three Go identifiers are not public anywhere.
-
-Three IP addresses appear, all inside decoded bodies:
-
-```text
-203.0.113.9    6 times   RFC 5737 documentation address, discloses nothing
-203.0.113.10   3 times   RFC 5737 documentation address, discloses nothing
-100.64.0.2     3 times   RFC 6598 shared address space, so a plausible internal
-                         address rather than a reserved-for-documentation one
-```
-
-That last one reaches the file as a guest source address in a virtual-machine
-introspection record, alongside a function name and a layer label from the same
-codebase.
-
-Regenerating costs one run of the Go generator under neutral payload types and a
-throwaway key, and it keeps every property the suite relies on: real signatures over
-real PAE pre-images from an independent implementation, and one payload that is not
-UTF-8.
+`tests/no_private_names.rs` walks every file the crate ships, decodes every JSON
+string, base64 run, hex run and percent-encoding in it, and compares each token by
+SHA-256 against a refused list supplied as digests from outside the repository.
+CI runs it over the source tree and again over the unpacked `.crate` that
+`cargo package` builds. A control plants a canary through each encoding and fails
+if the scanner misses one.
 
 ## Licences
 
 secure-systems-lab/dsse is Apache-2.0, Google LLC and the DSSE maintainers, an
 organisation rather than an individual. Contact is MAINTAINERS.md in that repository.
-The vector file and the ported PAE logic are ours.
+The ported PAE logic and the generator are ours; the pre-images and envelopes in the
+vector file are the output of secure-systems-lab/go-securesystemslib, Apache-2.0,
+which the generator uses and the published crate does not ship.
 
 ```text
 base64, serde, serde_json, thiserror   MIT OR Apache-2.0
 ed25519-dalek                          BSD-3-Clause, dalek-cryptography
+sha2 (tests only)                      MIT OR Apache-2.0
 ```
