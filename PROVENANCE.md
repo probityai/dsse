@@ -67,10 +67,7 @@ subjects, flat event records using the RFC 5737 documentation address
 root that is not valid UTF-8, and a payload type whose UTF-8 encoding is longer
 than its character count.
 
-Version 0.1.0 of this crate shipped an earlier fixture file, copied from a private
-test suite of ours. Its signed bodies carried internal source paths and
-identifiers from that suite, inside base64 where a text search does not reach.
-Version 0.1.1 replaces it, and 0.1.0 is yanked.
+Version 0.1.1 replaces the fixture file that 0.1.0 shipped, and 0.1.0 is yanked.
 
 ## Ported logic
 
