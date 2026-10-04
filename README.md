@@ -65,6 +65,7 @@ DSSE reference Go implementation, recorded in PROVENANCE.md.
 | --- | --- |
 | <a name="what-a-signature-covers"></a><a name="verify-then-read"></a><a name="bring-your-own-signatures"></a><a name="tests"></a><a name="provenance"></a>[Design and evidence](https://github.com/probityai/dsse/blob/main/docs/DESIGN.md) | the pre-authentication encoding, why verification returns the payload, each refusal and its reason, and the tests |
 | [API reference](https://docs.rs/dsse) | every type, trait and error, on docs.rs |
+| [Sigstore JS consumer](https://github.com/probityai/dsse/blob/main/docs/SIGSTORE-JS-THRESHOLD.md) | runnable offline threshold checks under consumer-selected keys |
 | [Provenance](https://github.com/probityai/dsse/blob/main/PROVENANCE.md) | the specification text and commit each rule was read from |
 | [Contributing](https://github.com/probityai/dsse/blob/main/CONTRIBUTING.md) and [changelog](https://github.com/probityai/dsse/blob/main/CHANGELOG.md) | how to propose a change, and what each release changed |
 

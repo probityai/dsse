@@ -1,0 +1,56 @@
+name: Sigstore source threshold consumer
+
+on:
+  push:
+    branches: [main]
+    paths: ['interop/sigstore-js-threshold-2026-10-04/**', 'tests/sigstore_js_profile.rs', '.github/workflows/sigstore-js-threshold.yml']
+  pull_request:
+    branches: [main]
+    paths: ['interop/sigstore-js-threshold-2026-10-04/**', 'tests/sigstore_js_profile.rs', '.github/workflows/sigstore-js-threshold.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-consumer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.19.0'
+      - name: Check native source, installed consumer and refusal controls
+        env:
+          SIGSTORE_INSTALL_EVIDENCE_DIR: ${{ runner.temp }}/sigstore-installed
+        run: |
+          node --test --test-reporter=tap interop/sigstore-js-threshold-2026-10-04/consumer.test.mjs > "$RUNNER_TEMP/sigstore-tests.tap"
+          node interop/sigstore-js-threshold-2026-10-04/replay.mjs "$RUNNER_TEMP/sigstore-replay.json"
+          cp interop/sigstore-js-threshold-2026-10-04/cases.json "$RUNNER_TEMP/old-cases.json"
+          node interop/sigstore-js-threshold-2026-10-04/generate-cases.mjs
+          cmp interop/sigstore-js-threshold-2026-10-04/cases.json "$RUNNER_TEMP/old-cases.json"
+      - name: Check the same finite controls using the Rust crate
+        run: |
+          rustup toolchain install stable --profile minimal
+          cargo +stable test --all-features --test sigstore_js_profile -- --nocapture > "$RUNNER_TEMP/sigstore-rust-tests.txt" 2>&1
+      - name: Retain exact source, fixtures and results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: sigstore-source-threshold-consumer
+          path: |
+            interop/sigstore-js-threshold-2026-10-04/
+            vectors/cross_lang_signing.json
+            tests/sigstore_js_profile.rs
+            src/
+            Cargo.toml
+            Cargo.lock
+            ${{ runner.temp }}/sigstore-tests.tap
+            ${{ runner.temp }}/sigstore-replay.json
+            ${{ runner.temp }}/sigstore-rust-tests.txt
+            ${{ runner.temp }}/sigstore-installed/
+          if-no-files-found: error
+          retention-days: 90
