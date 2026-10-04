@@ -7,6 +7,7 @@ license = "Apache-2.0"
 description = "DSSE (Dead Simple Signing Envelope) with PAE pre-authentication encoding: envelope construction, signing, and threshold verification."
 repository = "https://github.com/probityai/dsse"
 documentation = "https://docs.rs/dsse"
+homepage = "https://github.com/probityai/dsse#readme"
 readme = "README.md"
 exclude = ["*.ledger.json", ".humanizer/", "/.github", "/scripts", "/vectors/generate"]
 keywords = ["dsse", "in-toto", "sigstore", "signing", "attestation"]
