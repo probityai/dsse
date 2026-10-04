@@ -56,18 +56,19 @@ fn frozen_controls_match_native_rust_decisions_and_exact_refusals() {
     assert_eq!(controls.cases.len(), 17);
     for case in controls.cases {
         let keys: Vec<Ed25519Verifier> = case.trusted_keys.iter().map(verifier).collect();
-        let references: Vec<&dyn Verifier> =
-            keys.iter().map(|key| key as &dyn Verifier).collect();
+        let references: Vec<&dyn Verifier> = keys.iter().map(|key| key as &dyn Verifier).collect();
         match dsse::verify(&case.envelope, &references, case.threshold) {
             Ok(verified) => {
                 assert_eq!(case.expected.decision, "verified", "{}", case.id);
                 assert_eq!(
                     verified.accepted_keys, case.expected.accepted_keys,
-                    "{}", case.id
+                    "{}",
+                    case.id
                 );
                 assert_eq!(
                     verified.payload_type, case.envelope.payload_type,
-                    "{}", case.id
+                    "{}",
+                    case.id
                 );
             }
             Err(error) => {
