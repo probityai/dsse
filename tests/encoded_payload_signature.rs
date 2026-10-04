@@ -1,9 +1,7 @@
-//! INVENTED CASE, taken from a mistake seen in a released signer. DSSE signs
-//! `PAE(payloadType, payload)` over the DECODED payload bytes; the envelope's
-//! `payload` member is only the base64 transport encoding of those bytes. A
-//! signer that feeds the base64 text into PAE produces envelopes that verify
-//! against its own verifier, because the verifier makes the same mistake, and
-//! that a standard verifier must reject.
+//! Synthetic Rust API pair for decoded-payload signing.
+//! DSSE signs `PAE(payloadType, payload)` over decoded bytes. The envelope's
+//! `payload` member carries those bytes as base64. This pair changes only the
+//! signed pre-image: base64 transport text is refused; decoded bytes verify.
 
 #![cfg(feature = "ed25519")]
 #![allow(
