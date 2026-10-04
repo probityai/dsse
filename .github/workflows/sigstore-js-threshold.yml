@@ -3,10 +3,10 @@ name: Sigstore source threshold consumer
 on:
   push:
     branches: [main]
-    paths: ['interop/sigstore-js-threshold-2026-10-04/**', 'tests/sigstore_js_profile.rs', '.github/workflows/sigstore-js-threshold.yml']
+    paths: ['interop/sigstore-js-threshold-2026-10-04/**', 'tests/sigstore_js_profile.rs', 'tests/encoded_payload_signature.rs', '.github/workflows/sigstore-js-threshold.yml']
   pull_request:
     branches: [main]
-    paths: ['interop/sigstore-js-threshold-2026-10-04/**', 'tests/sigstore_js_profile.rs', '.github/workflows/sigstore-js-threshold.yml']
+    paths: ['interop/sigstore-js-threshold-2026-10-04/**', 'tests/sigstore_js_profile.rs', 'tests/encoded_payload_signature.rs', '.github/workflows/sigstore-js-threshold.yml']
   workflow_dispatch:
 
 permissions:
