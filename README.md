@@ -15,7 +15,7 @@ the envelope without taking a whole attestation stack along with it.
 Add it as a pinned dependency:
 
 ```bash
-cargo add dsse@=0.1.1
+cargo add dsse@=0.1.2
 ```
 
 Then sign an envelope and verify it:
@@ -55,7 +55,7 @@ ed25519 feature and implement the `Signer` and `Verifier` traits.
 
 ## Status
 
-Version 0.1.1 on [crates.io](https://crates.io/crates/dsse). The rules come from DSSE's
+Version 0.1.2 on [crates.io](https://crates.io/crates/dsse). The rules come from DSSE's
 specification text at version 1.0.2, and the tests load cross-language fixtures built by the
 DSSE reference Go implementation, recorded in PROVENANCE.md.
 
@@ -64,7 +64,7 @@ DSSE reference Go implementation, recorded in PROVENANCE.md.
 | page | read it for |
 | --- | --- |
 | <a name="what-a-signature-covers"></a><a name="verify-then-read"></a><a name="bring-your-own-signatures"></a><a name="tests"></a><a name="provenance"></a>[Design and evidence](https://github.com/probityai/dsse/blob/main/docs/DESIGN.md) | the pre-authentication encoding, why verification returns the payload, each refusal and its reason, and the tests |
-| [Version 0.1.1 API reference](https://docs.rs/dsse/0.1.1/dsse/) | every type, trait and error in the installed release |
+| [Version 0.1.2 API reference](https://docs.rs/dsse/0.1.2/dsse/) | every type, trait and error in the installed release |
 | [Agent guide](llms.txt) | installation, API entry points and runnable comparisons |
 | [Sigstore JS consumer](https://github.com/probityai/dsse/blob/main/docs/SIGSTORE-JS-THRESHOLD.md) | runnable offline threshold checks under consumer-selected keys |
 | [Provenance](https://github.com/probityai/dsse/blob/main/PROVENANCE.md) | the specification text and commit each rule was read from |
