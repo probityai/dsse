@@ -4,6 +4,30 @@ A record of every notable change to this Rust crate. Its format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and its version numbers
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.2 - 2026-10-09
+
+No change to what the crate signs or verifies. This release adds release checks
+and ships the tests and documentation written since 0.1.1.
+
+### Added
+
+`tests/encoded_payload_signature.rs`: a signature made over the base64 text of a
+payload, rather than over the PAE of the decoded bytes, is rejected through the
+public API, for one key and under a threshold.
+
+A Sigstore JS threshold consumer under `interop/`, run against the same fixtures.
+
+`SECURITY.md`, with private reporting through GitHub and the supported versions.
+
+CI now runs the tests on the declared minimum Rust version (1.85),
+`cargo semver-checks` against the newest crates.io release, and `cargo vet`
+over a tracked `Cargo.lock`.
+
+### Changed
+
+The README's install pin and API links point at the installed version, and the
+repository carries an agent guide (`AGENTS.md`).
+
 ## 0.1.1 - 2026-09-30
 
 A threshold fix, and new test fixtures in the published package. 0.1.0 is yanked.
